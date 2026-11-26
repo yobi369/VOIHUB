@@ -1,0 +1,206 @@
+{
+  "entities": {
+    "UserProfileDoc": {
+      "title": "UserProfileDoc",
+      "description": "Private TECH HUB account profile, gamification state, role preference, and synced learning progress (owner-only PII).",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "email": { "type": "string", "format": "email", "maxLength": 200 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "accountType": { "type": "string", "enum": ["student", "teacher", "parent"] },
+        "preferredGrade": { "type": "integer" },
+        "lp": { "type": "integer" },
+        "level": { "type": "integer" },
+        "streak": { "type": "integer" },
+        "lastLogin": { "type": "string", "maxLength": 32 },
+        "questsLastGenerated": { "type": "string", "maxLength": 32 },
+        "audioEnabled": { "type": "boolean" },
+        "unlockedAvatarItems": { "type": "array" },
+        "equippedAvatarItems": { "type": "object" },
+        "badges": { "type": "array" },
+        "completedModuleIds": { "type": "array" },
+        "completedCapstones": { "type": "array" },
+        "solvedCtfFlags": { "type": "array" },
+        "joinedClassIds": { "type": "array" },
+        "parentInviteCode": { "type": "string", "maxLength": 32 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "uid",
+        "email",
+        "name",
+        "accountType",
+        "preferredGrade",
+        "lp",
+        "level",
+        "streak",
+        "lastLogin",
+        "questsLastGenerated",
+        "audioEnabled",
+        "unlockedAvatarItems",
+        "equippedAvatarItems",
+        "badges",
+        "completedModuleIds",
+        "completedCapstones",
+        "solvedCtfFlags",
+        "joinedClassIds",
+        "parentInviteCode",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Classroom": {
+      "title": "Classroom",
+      "description": "Teacher-managed classroom for Classes 1-9 with assigned modules and exam retake/lock controls.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "teacherUid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "teacherName": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "grade": { "type": "integer" },
+        "joinCode": { "type": "string", "minLength": 4, "maxLength": 24 },
+        "assignedModuleIds": { "type": "array" },
+        "lockedExamModuleIds": { "type": "array" },
+        "allowRetakes": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "teacherUid",
+        "teacherName",
+        "name",
+        "grade",
+        "joinCode",
+        "assignedModuleIds",
+        "lockedExamModuleIds",
+        "allowRetakes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ClassroomInvite": {
+      "title": "ClassroomInvite",
+      "description": "Lookup index keyed by joinCode mapping to classroom id and metadata without exposing classroom rosters.",
+      "type": "object",
+      "properties": {
+        "joinCode": { "type": "string", "minLength": 4, "maxLength": 24 },
+        "classId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "teacherUid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "classroomName": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "grade": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["joinCode", "classId", "teacherUid", "classroomName", "grade", "createdAt"]
+    },
+    "ClassroomMember": {
+      "title": "ClassroomMember",
+      "description": "Student progress snapshot inside a classroom subcollection synced for teacher monitoring.",
+      "type": "object",
+      "properties": {
+        "studentUid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "classId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "teacherUid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "joinCode": { "type": "string", "minLength": 4, "maxLength": 24 },
+        "studentName": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "grade": { "type": "integer" },
+        "lp": { "type": "integer" },
+        "level": { "type": "integer" },
+        "streak": { "type": "integer" },
+        "completedModulesCount": { "type": "integer" },
+        "completedModuleIds": { "type": "array" },
+        "examScores": { "type": "object" },
+        "completedCapstones": { "type": "array" },
+        "solvedCtfFlags": { "type": "array" },
+        "badgesCount": { "type": "integer" },
+        "joinedAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "studentUid",
+        "classId",
+        "teacherUid",
+        "joinCode",
+        "studentName",
+        "grade",
+        "lp",
+        "level",
+        "streak",
+        "completedModulesCount",
+        "completedModuleIds",
+        "examScores",
+        "completedCapstones",
+        "solvedCtfFlags",
+        "badgesCount",
+        "joinedAt",
+        "updatedAt"
+      ]
+    },
+    "ParentLink": {
+      "title": "ParentLink",
+      "description": "Zero-PII student progress snapshot shareable with a verified parent account via invite code.",
+      "type": "object",
+      "properties": {
+        "linkCode": { "type": "string", "minLength": 6, "maxLength": 32 },
+        "studentUid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "parentUid": { "type": "string", "maxLength": 128 },
+        "studentName": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "grade": { "type": "integer" },
+        "lp": { "type": "integer" },
+        "level": { "type": "integer" },
+        "streak": { "type": "integer" },
+        "completedModulesCount": { "type": "integer" },
+        "completedModuleIds": { "type": "array" },
+        "examScores": { "type": "object" },
+        "completedCapstones": { "type": "array" },
+        "solvedCtfFlags": { "type": "array" },
+        "badges": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "linkCode",
+        "studentUid",
+        "parentUid",
+        "studentName",
+        "grade",
+        "lp",
+        "level",
+        "streak",
+        "completedModulesCount",
+        "completedModuleIds",
+        "examScores",
+        "completedCapstones",
+        "solvedCtfFlags",
+        "badges",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfileDoc" },
+      "description": "Owner-isolated user profile and progress record."
+    },
+    "/classrooms/{classId}": {
+      "schema": { "$ref": "#/entities/Classroom" },
+      "description": "Teacher-owned classroom metadata, assigned modules, and exam controls."
+    },
+    "/classroomInvites/{joinCode}": {
+      "schema": { "$ref": "#/entities/ClassroomInvite" },
+      "description": "Join-code lookup document allowing students to resolve a classroom ID."
+    },
+    "/classrooms/{classId}/members/{studentUid}": {
+      "schema": { "$ref": "#/entities/ClassroomMember" },
+      "description": "Classroom roster and progress telemetry synced by each member student."
+    },
+    "/parentLinks/{linkCode}": {
+      "schema": { "$ref": "#/entities/ParentLink" },
+      "description": "Parent-to-student progress bridge keyed by secret invite code."
+    }
+  }
+}

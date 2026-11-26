@@ -1,0 +1,9 @@
+{
+  "name": "VOI HUB",
+  "description": "Deep K-9 academic encyclopedia, interactive STEM simulations, spaced-repetition vault, and AI-powered Socratic learning platform.",
+  "requestFramePermissions": [],
+  "prompt": "",
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
