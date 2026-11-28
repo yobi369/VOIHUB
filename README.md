@@ -87,7 +87,7 @@ The current rate limiter and daily cap are in-memory and therefore per-process. 
 | `POST /api/practice/generate` | Generate practice problems |
 | `POST /api/tutor/chat` | Tutor conversation turn |
 
-AI endpoints require a valid Firebase ID token from an email-verified account. The server verifies tokens through Firebase Authentication using `FIREBASE_WEB_API_KEY`, then applies request validation, length limits, per-client rate limiting, and a process-local daily cap. Per-account subscription entitlements and persistent shared quotas remain part of the production-readiness work.
+AI endpoints require a valid Firebase ID token from an email-verified account. The server verifies tokens through Firebase Authentication using `FIREBASE_WEB_API_KEY`, then applies request validation, length limits, independent per-account and per-IP rate limits, and a process-local daily cap. Per-account subscription entitlements and persistent shared quotas remain part of the production-readiness work.
 
 ## Firebase and Firestore
 
