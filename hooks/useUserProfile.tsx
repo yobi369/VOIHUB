@@ -17,6 +17,7 @@ import {
   fetchJoinedClassrooms,
   loadUserProfileFromCloud,
   signInWithGoogle as firebaseSignInWithGoogle,
+  secureCode,
   signOutUser as firebaseSignOutUser,
   syncParentLinkSnapshot,
   syncStudentMemberSnapshot,
@@ -25,14 +26,7 @@ import {
 
 const PROFILE_KEY = 'voiHubUserProfile_v2';
 
-const generateInviteCode = () => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let suffix = '';
-  for (let i = 0; i < 6; i++) {
-    suffix += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return `KID-${suffix}`;
-};
+const generateInviteCode = () => `KID-${secureCode(6)}`;
 
 const getInitialProfile = (): UserProfile => {
   const today = new Date().toISOString().split('T')[0];

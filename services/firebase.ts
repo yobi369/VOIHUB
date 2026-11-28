@@ -114,6 +114,14 @@ const cleanId = (raw: string) =>
     .replace(/[^a-zA-Z0-9_-]/g, '')
     .slice(0, 128);
 
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 32 chars, no 0/O/1/I; 256 % 32 === 0 so no modulo bias
+
+export const secureCode = (length: number): string => {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => CODE_CHARS[b % CODE_CHARS.length]).join('');
+};
+
 const clampStr = (val: string | undefined, max: number, fallback = ''): string =>
   (val || fallback).slice(0, max);
 
@@ -211,10 +219,10 @@ export async function createClassroom(
   grade: number
 ): Promise<ClassroomRecord> {
   const safeTeacherUid = cleanId(teacherUid);
-  const classId = cleanId(`cls-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`);
-  const randomCode = Math.random().toString(36).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4).padEnd(4, '7');
-  const joinCode = `TH-G${Math.min(9, Math.max(1, grade))}-${randomCode}`.slice(0, 24);
+  const classId = cleanId(`cls-${Date.now().toString(36)}-${secureCode(4)}`);
   const safeGrade = Math.min(9, Math.max(1, Math.round(grade)));
+  // 6 unambiguous characters from a CSPRNG (~1 billion codes per grade); the join code is the only gate to a class.
+  const joinCode = `TH-G${safeGrade}-${secureCode(6)}`;
   const safeName = clampStr(name.trim() || `Class ${safeGrade} Tech Cohort`, 80, `Class ${safeGrade} Tech Cohort`);
   const safeTeacherName = clampStr(teacherName.trim() || 'Lead Instructor', 60, 'Lead Instructor');
 

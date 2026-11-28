@@ -3,6 +3,10 @@ import { ArrowRight, Award, Cpu, FlaskConical, Search, Terminal, Users } from 'l
 import { ALL_MODULES, findModuleById } from '../data/curriculum';
 import type { CurriculumModule, SandboxTabKind } from '../types';
 
+const HERO_IMAGE_URL = new URL('../src/assets/images/tech_hub_hero_1795693277942.jpg', import.meta.url).href;
+const AI_LAB_IMAGE_URL = new URL('../src/assets/images/lab_ai_network_1795693278093.jpg', import.meta.url).href;
+const CYBER_LAB_IMAGE_URL = new URL('../src/assets/images/lab_cyber_shield_1795693278793.jpg', import.meta.url).href;
+
 interface GradeSelectorProps {
   onSelectGrade: (grade: number) => void;
   onSelectModule: (mod: CurriculumModule) => void;
@@ -61,7 +65,7 @@ const GradeSelector: React.FC<GradeSelectorProps> = ({
 
   return (
     <div className="max-w-[1440px] mx-auto px-6 py-10 space-y-14">
-      {/* Two-Column Tech Hub Hero Split */}
+      {/* VOI HUB product hero */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         <div className="lg:col-span-6 flex flex-col justify-between bg-white border border-slate-200 rounded-xl p-8 sm:p-10">
           <div className="space-y-4">
@@ -69,7 +73,7 @@ const GradeSelector: React.FC<GradeSelectorProps> = ({
               Classes 1–9 · Artificial Intelligence · Networking · Cybersecurity
             </div>
             <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.12] text-balance">
-              TECH HUB for Kids: AI, Networking &amp; Cyber Defense.
+              VOI HUB for Kids: AI, Networking &amp; Cyber Defense.
             </h1>
             <p className="text-base text-slate-600 leading-relaxed max-w-xl">
               Master {ALL_MODULES.length.toLocaleString()} structured modules across all 9 classes—from Class 1 visual puzzles to Class 9 architecture—paired with live neural-network, packet-router, and cryptography labs built for young learners.
@@ -104,7 +108,7 @@ const GradeSelector: React.FC<GradeSelectorProps> = ({
         <div className="lg:col-span-6 bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col">
           {!heroImgFailed ? (
             <img
-              src="/src/assets/images/tech_hub_hero_1795693277942.jpg"
+              src={HERO_IMAGE_URL}
               alt="Kids technology laboratory showing neural network sphere, fiber optic routing pathways, and security padlock shield"
               referrerPolicy="no-referrer"
               onError={() => setHeroImgFailed(true)}
@@ -113,7 +117,7 @@ const GradeSelector: React.FC<GradeSelectorProps> = ({
           ) : (
             <div className="w-full h-full min-h-[280px] bg-slate-100 flex flex-col items-center justify-center p-8 text-center">
               <Cpu className="w-10 h-10 text-blue-700 mb-3" />
-              <div className="text-sm font-bold text-slate-900">TECH HUB · Classes 1–9</div>
+              <div className="text-sm font-bold text-slate-900">VOI HUB · Classes 1–9</div>
               <p className="text-xs text-slate-500 mt-1">AI, Networking &amp; Cybersecurity · 864 Modules</p>
             </div>
           )}
@@ -238,7 +242,7 @@ const GradeSelector: React.FC<GradeSelectorProps> = ({
             <div className="sm:col-span-5 bg-slate-100">
               {!netImgFailed ? (
                 <img
-                  src="/src/assets/images/lab_ai_network_1795693278093.jpg"
+                  src={AI_LAB_IMAGE_URL}
                   alt="Network packets traveling between servers and an artificial intelligence neural network"
                   referrerPolicy="no-referrer"
                   onError={() => setNetImgFailed(true)}
@@ -269,7 +273,7 @@ const GradeSelector: React.FC<GradeSelectorProps> = ({
             <div className="sm:col-span-5 bg-slate-100">
               {!cyberImgFailed ? (
                 <img
-                  src="/src/assets/images/lab_cyber_shield_1795693278793.jpg"
+                  src={CYBER_LAB_IMAGE_URL}
                   alt="Cybersecurity digital shield with cipher rings, keys, and safe devices"
                   referrerPolicy="no-referrer"
                   onError={() => setCyberImgFailed(true)}

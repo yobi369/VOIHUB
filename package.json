@@ -7,8 +7,12 @@
     "dev": "tsx server.ts",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "tsx server.ts",
-    "lint": "tsc --noEmit"
+    "start": "tsx server.ts --prod",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/server*.test.ts",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
+    "lint": "eslint firestore.rules",
+    "test:rules": "firebase emulators:exec --config firebase.test.json --project demo-voihub-rules --only firestore \"tsx --test tests/firestoreRules.test.ts\""
   },
   "dependencies": {
     "@firebase/eslint-plugin-security-rules": "^0.0.2",
