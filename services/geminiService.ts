@@ -1,4 +1,5 @@
 import { normalizeDeepLessonContent } from '../data/foundationalLessons';
+import { auth } from './firebase';
 import type { DeepLessonContent, TutorMessage } from '../types';
 
 export interface PracticeProblem {
@@ -9,10 +10,26 @@ export interface PracticeProblem {
   finalAnswer: string;
 }
 
+async function getAuthenticatedHeaders(): Promise<Record<string, string>> {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('Sign in with Google to use AI-powered learning features.');
+  }
+  if (!user.emailVerified) {
+    throw new Error('Verify your email address before using AI-powered learning features.');
+  }
+
+  const idToken = await user.getIdToken();
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${idToken}`,
+  };
+}
+
 export async function checkAiHealth(): Promise<{ ok: boolean; aiConfigured: boolean; model: string }> {
   const res = await fetch('/api/health');
   if (!res.ok) {
-    throw new Error('Unable to reach TECH HUB backend server.');
+    throw new Error('Unable to reach VOI HUB backend server.');
   }
   return res.json();
 }
@@ -27,7 +44,7 @@ export async function generateDeepLesson(params: {
 }): Promise<DeepLessonContent> {
   const res = await fetch('/api/lesson/generate', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await getAuthenticatedHeaders(),
     body: JSON.stringify(params),
   });
   const data = await res.json().catch(() => ({}));
@@ -52,7 +69,7 @@ export async function generatePracticeDrill(params: {
 }): Promise<PracticeProblem[]> {
   const res = await fetch('/api/practice/generate', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await getAuthenticatedHeaders(),
     body: JSON.stringify(params),
   });
   const data = await res.json().catch(() => ({}));
@@ -79,7 +96,7 @@ export async function sendTutorMessage(params: {
 }): Promise<string> {
   const res = await fetch('/api/tutor/chat', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await getAuthenticatedHeaders(),
     body: JSON.stringify(params),
   });
   const data = await res.json().catch(() => ({}));
