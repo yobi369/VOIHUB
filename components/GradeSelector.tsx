@@ -3,6 +3,10 @@ import { ArrowRight, Award, Cpu, FlaskConical, Search, Terminal, Users } from 'l
 import { ALL_MODULES, findModuleById } from '../data/curriculum';
 import type { CurriculumModule, SandboxTabKind } from '../types';
 
+const HERO_IMAGE_URL = new URL('../src/assets/images/tech_hub_hero_1795693277942.jpg', import.meta.url).href;
+const AI_LAB_IMAGE_URL = new URL('../src/assets/images/lab_ai_network_1795693278093.jpg', import.meta.url).href;
+const CYBER_LAB_IMAGE_URL = new URL('../src/assets/images/lab_cyber_shield_1795693278793.jpg', import.meta.url).href;
+
 interface GradeSelectorProps {
   onSelectGrade: (grade: number) => void;
   onSelectModule: (mod: CurriculumModule) => void;
@@ -104,7 +108,7 @@ const GradeSelector: React.FC<GradeSelectorProps> = ({
         <div className="lg:col-span-6 bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col">
           {!heroImgFailed ? (
             <img
-              src="/src/assets/images/tech_hub_hero_1795693277942.jpg"
+              src={HERO_IMAGE_URL}
               alt="Kids technology laboratory showing neural network sphere, fiber optic routing pathways, and security padlock shield"
               referrerPolicy="no-referrer"
               onError={() => setHeroImgFailed(true)}
@@ -238,7 +242,7 @@ const GradeSelector: React.FC<GradeSelectorProps> = ({
             <div className="sm:col-span-5 bg-slate-100">
               {!netImgFailed ? (
                 <img
-                  src="/src/assets/images/lab_ai_network_1795693278093.jpg"
+                  src={AI_LAB_IMAGE_URL}
                   alt="Network packets traveling between servers and an artificial intelligence neural network"
                   referrerPolicy="no-referrer"
                   onError={() => setNetImgFailed(true)}
@@ -269,7 +273,7 @@ const GradeSelector: React.FC<GradeSelectorProps> = ({
             <div className="sm:col-span-5 bg-slate-100">
               {!cyberImgFailed ? (
                 <img
-                  src="/src/assets/images/lab_cyber_shield_1795693278793.jpg"
+                  src={CYBER_LAB_IMAGE_URL}
                   alt="Cybersecurity digital shield with cipher rings, keys, and safe devices"
                   referrerPolicy="no-referrer"
                   onError={() => setCyberImgFailed(true)}
