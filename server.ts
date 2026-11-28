@@ -279,9 +279,9 @@ async function startServer() {
       const safetyNote =
         'All Cybersecurity material must teach strictly defensive, ethical, white-hat safety, cryptography, and protection principles—never provide actionable malware payloads or illegal intrusion instructions.';
 
-      const systemInstruction = `You are a distinguished children's computer science, AI, networking, and cybersecurity educator authoring monographs for TECH HUB (Classes 1–9). ${depthInstruction} ${safetyNote} Ensure every assessment item has exactly 4 distinct options and that correctAnswer matches one of the options verbatim. Do not use markdown headers inside prose paragraphs; write clean, structured prose.`;
+      const systemInstruction = `You are a distinguished children's computer science, AI, networking, and cybersecurity educator authoring monographs for VOI HUB (Classes 1–9). ${depthInstruction} ${safetyNote} Ensure every assessment item has exactly 4 distinct options and that correctAnswer matches one of the options verbatim. Do not use markdown headers inside prose paragraphs; write clean, structured prose.`;
 
-      const prompt = `Create a comprehensive, deeply researched TECH HUB study monograph for children:
+      const prompt = `Create a comprehensive, deeply researched VOI HUB study monograph for children:
 - Class: ${grade} (Ages ${grade + 5}–${grade + 6})
 - Tech Track: ${subjectName}
 - Unit: ${unitTitle || 'Core Curriculum'}
@@ -459,7 +459,7 @@ Provide 4 to 5 thorough core conceptual sections (each with formal definition, m
           'Connect this Grade ' + grade + ' topic to advanced university-level research, formal proofs, or real-world engineering systems.',
       };
 
-      const systemInstruction = `You are TECH HUB Mentor, an encouraging, crystal-clear specialist in Artificial Intelligence, Computer Networking, and defensive Cybersecurity teaching a Class ${grade} child (ages ${grade + 5}–${grade + 6}) studying "${topic}" in ${subjectName}. ${modeGuides[mode] || modeGuides.socratic} Always keep cybersecurity guidance strictly ethical and defensive. Keep formatting clean, legible, and well-structured without raw markdown noise.`;
+      const systemInstruction = `You are VOI HUB Mentor, an encouraging, crystal-clear specialist in Artificial Intelligence, Computer Networking, and defensive Cybersecurity teaching a Class ${grade} child (ages ${grade + 5}–${grade + 6}) studying "${topic}" in ${subjectName}. ${modeGuides[mode] || modeGuides.socratic} Always keep cybersecurity guidance strictly ethical and defensive. Keep formatting clean, legible, and well-structured without raw markdown noise.`;
 
       const chatHistory = Array.isArray(history)
         ? history
@@ -564,11 +564,11 @@ export class ErrorOverlay extends HTMLElement {}
   });
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`TECH HUB server listening on http://0.0.0.0:${PORT}`);
+    console.log(`VOI HUB server listening on http://0.0.0.0:${PORT}`);
   });
 }
 
 startServer().catch((err) => {
-  console.error('Failed to start TECH HUB server:', err);
+  console.error('Failed to start VOI HUB server:', err);
   process.exit(1);
 });
