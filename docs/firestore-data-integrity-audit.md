@@ -48,11 +48,11 @@ The profile is persisted in localStorage and merged with cloud values. Local pro
 4. **Publish trusted snapshots.** Classroom and parent views should read server-maintained summaries. Students must not be able to write authoritative score/reward fields into those documents.
 5. **Preserve offline mode honestly.** Keep local learning progress available offline, but label unsynchronized/local achievements as provisional. Reconcile them through trusted validation when online.
 6. **Issue verifiable certificates.** Generate a certificate record and unique verification token server-side only after a trusted capstone assessment; expose a public verification endpoint that reveals minimal information.
-7. **Add rules tests before tightening writes.** Use the Firebase Emulator Suite and rules-unit-testing to cover owner reads, profile preference updates, student self-escalation attempts, cross-student reads/writes, teacher access, parent-link claims, and server-only achievement writes.
+7. **Expand rules tests before tightening writes.** An initial emulator-backed suite now covers unauthenticated profile denial, owner profile reads, cross-student profile isolation, disabled collection listing, student-owned classroom-member reads, cross-student member denial, teacher member reads, and unrelated-user denial. Extend it to profile preference updates, parent-link claims, classroom lifecycle behavior, and server-only achievement writes.
 
 ## Safe rollout sequence
 
-- **Phase A:** Add emulator-backed rules tests and define the canonical achievement schema.
+- **Phase A (started):** Emulator-backed access-control tests are wired into CI. Define the canonical achievement schema and expand coverage before changing write permissions.
 - **Phase B:** Implement server endpoints/transactions and migrate classroom/parent summaries to server-maintained records.
 - **Phase C:** Update the client to submit attempts and display provisional versus verified status.
 - **Phase D:** Tighten Firestore rules to deny direct client mutation of authoritative achievement fields; verify all existing classroom and parent flows against emulator tests.
@@ -64,4 +64,4 @@ Production launch remains blocked for any feature marketed as verified assessmen
 
 ## Audit limitation
 
-This is a source-code and rules review, not a live Firebase project audit. It does not prove deployed rules match this branch, inspect production data, or test the deployed Firebase configuration. Confirm deployed rules and run emulator/integration tests before release.
+The current emulator suite exercises read boundaries only; it does not yet prove that client achievement writes are blocked. This is a source-code and rules review, not a live Firebase project audit. It does not prove deployed rules match this branch, inspect production data, or test the deployed Firebase configuration. Confirm deployed rules and run emulator/integration tests before release.
