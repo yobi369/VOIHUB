@@ -1,4 +1,5 @@
 import express from 'express';
+import { verifyFirebaseIdToken } from './serverAuth.ts';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
@@ -44,6 +45,35 @@ function sendApiError(res: express.Response, route: string, error: any, fallback
   // Never expose raw upstream/internal error text to clients.
   return res.status(500).json({ error: fallbackMessage });
 }
+
+const firebaseAuthGuard: express.RequestHandler = async (req, res, next) => {
+  const webApiKey = process.env.FIREBASE_WEB_API_KEY;
+  if (!webApiKey) {
+    return res.status(503).json({ error: 'AI authentication is not configured.' });
+  }
+
+  const authorization = req.get('authorization') || '';
+  const match = /^Bearer\\s+([^\\s]+)$/i.exec(authorization);
+  if (!match) {
+    return res.status(401).json({ error: 'Sign in to use AI-powered learning features.' });
+  }
+
+  try {
+    const identity = await verifyFirebaseIdToken(match[1], webApiKey);
+    if (!identity) {
+      return res.status(401).json({ error: 'Your session is invalid or has expired. Please sign in again.' });
+    }
+    if (!identity.emailVerified) {
+      return res.status(403).json({ error: 'Verify your email address before using AI-powered learning features.' });
+    }
+    res.locals.firebaseUser = identity;
+    next();
+  } catch {
+    // Do not expose provider responses, tokens, or API-key details to clients.
+    console.error('Firebase ID token verification is temporarily unavailable.');
+    return res.status(503).json({ error: 'Authentication service temporarily unavailable.' });
+  }
+};
 
 const aiGuard: express.RequestHandler = (req, res, next) => {
   const limit = aiRateLimiter.check(req.ip || 'unknown');
@@ -222,9 +252,10 @@ async function startServer() {
     });
   });
 
-  app.use('/api/lesson', aiGuard);
-  app.use('/api/practice', aiGuard);
-  app.use('/api/tutor', aiGuard);
+  // AI endpoints require a valid, email-verified Firebase user before rate limiting or provider access.
+  app.use('/api/lesson', firebaseAuthGuard, aiGuard);
+  app.use('/api/practice', firebaseAuthGuard, aiGuard);
+  app.use('/api/tutor', firebaseAuthGuard, aiGuard);
 
   app.post('/api/lesson/generate', async (req, res) => {
     try {
