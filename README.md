@@ -68,6 +68,7 @@ The production server serves the compiled `dist/` directory and the API. Configu
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `GEMINI_API_KEY` | — | Required for AI endpoints |
+| `FIREBASE_WEB_API_KEY` | — | Server-side Firebase ID-token verification key (Identity Toolkit API) |
 | `GEMINI_MODEL` | `gemini-4-hydrogen` | Gemini model override |
 | `AI_RATE_MAX` | `30` | Maximum AI requests per client window |
 | `AI_RATE_WINDOW_MS` | `600000` | AI request window in milliseconds |
@@ -85,7 +86,7 @@ The current rate limiter and daily cap are in-memory and therefore per-process. 
 | `POST /api/practice/generate` | Generate practice problems |
 | `POST /api/tutor/chat` | Tutor conversation turn |
 
-AI endpoints apply request validation, length limits, per-client rate limiting, and a process-local daily cap. Authentication and per-account entitlements remain part of the production-readiness work.
+AI endpoints require a valid Firebase ID token from an email-verified account. The server verifies tokens through Firebase Authentication using `FIREBASE_WEB_API_KEY`, then applies request validation, length limits, per-client rate limiting, and a process-local daily cap. Per-account subscription entitlements and persistent shared quotas remain part of the production-readiness work.
 
 ## Firebase and Firestore
 
