@@ -10,7 +10,8 @@
     "start": "tsx server.ts --prod",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
-    "check": "npm run typecheck && npm test && npm run build"
+    "check": "npm run typecheck && npm test && npm run build",
+    "lint": "eslint firestore.rules"
   },
   "dependencies": {
     "@firebase/eslint-plugin-security-rules": "^0.0.2",
