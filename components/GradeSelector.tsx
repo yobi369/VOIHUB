@@ -61,7 +61,7 @@ const GradeSelector: React.FC<GradeSelectorProps> = ({
 
   return (
     <div className="max-w-[1440px] mx-auto px-6 py-10 space-y-14">
-      {/* Two-Column Tech Hub Hero Split */}
+      {/* VOI HUB product hero */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         <div className="lg:col-span-6 flex flex-col justify-between bg-white border border-slate-200 rounded-xl p-8 sm:p-10">
           <div className="space-y-4">
@@ -69,7 +69,7 @@ const GradeSelector: React.FC<GradeSelectorProps> = ({
               Classes 1–9 · Artificial Intelligence · Networking · Cybersecurity
             </div>
             <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.12] text-balance">
-              TECH HUB for Kids: AI, Networking &amp; Cyber Defense.
+              VOI HUB for Kids: AI, Networking &amp; Cyber Defense.
             </h1>
             <p className="text-base text-slate-600 leading-relaxed max-w-xl">
               Master {ALL_MODULES.length.toLocaleString()} structured modules across all 9 classes—from Class 1 visual puzzles to Class 9 architecture—paired with live neural-network, packet-router, and cryptography labs built for young learners.
@@ -113,7 +113,7 @@ const GradeSelector: React.FC<GradeSelectorProps> = ({
           ) : (
             <div className="w-full h-full min-h-[280px] bg-slate-100 flex flex-col items-center justify-center p-8 text-center">
               <Cpu className="w-10 h-10 text-blue-700 mb-3" />
-              <div className="text-sm font-bold text-slate-900">TECH HUB · Classes 1–9</div>
+              <div className="text-sm font-bold text-slate-900">VOI HUB · Classes 1–9</div>
               <p className="text-xs text-slate-500 mt-1">AI, Networking &amp; Cybersecurity · 864 Modules</p>
             </div>
           )}
