@@ -29,6 +29,11 @@ const aiRateLimiter = createRateLimiter({
   windowMs: positiveIntFromEnv(process.env.AI_RATE_WINDOW_MS, 10 * 60 * 1000),
   max: positiveIntFromEnv(process.env.AI_RATE_MAX, 30),
 });
+// Enforce a separate quota per authenticated account as well as per source IP.
+const aiUserRateLimiter = createRateLimiter({
+  windowMs: positiveIntFromEnv(process.env.AI_RATE_WINDOW_MS, 10 * 60 * 1000),
+  max: positiveIntFromEnv(process.env.AI_RATE_MAX, 30),
+});
 const aiDailyCap = createDailyCap(positiveIntFromEnv(process.env.AI_DAILY_CAP, 5000));
 
 const AI_UNAVAILABLE = 'The AI tutor is temporarily unavailable. Please try again in a moment.';
@@ -76,7 +81,15 @@ const firebaseAuthGuard: express.RequestHandler = async (req, res, next) => {
 };
 
 const aiGuard: express.RequestHandler = (req, res, next) => {
-  const limit = aiRateLimiter.check(req.ip || 'unknown');
+  const userId = res.locals.firebaseUser?.uid;
+  if (typeof userId !== 'string' || !userId) {
+    return res.status(401).json({ error: 'Sign in to use AI-powered learning features.' });
+  }
+
+  const userLimit = aiUserRateLimiter.check(userId);
+  const ipLimit = aiRateLimiter.check(req.ip || 'unknown');
+  const limit = !userLimit.allowed ? userLimit : ipLimit;
+
   if (!limit.allowed) {
     res.setHeader('Retry-After', String(limit.retryAfterSeconds));
     return res.status(429).json({ error: 'Too many requests. Please wait a bit before trying again.' });
