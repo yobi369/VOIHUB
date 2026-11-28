@@ -44,6 +44,7 @@ Run the same core checks used by GitHub Actions:
 bun run lint
 bun run typecheck
 bun run test
+bun run test:rules
 bun run build
 ```
 
@@ -53,7 +54,7 @@ Or run all three in sequence:
 bun run check
 ```
 
-The current lint step checks Firestore security rules with the Firebase rules ESLint plugin. Automated tests cover the dependency-free server input, usage guards, and Firebase token-verification outcomes. Firestore emulator tests, full authentication journeys, AI provider integration, and browser end-to-end tests are still required.
+The lint step checks Firestore security rules with the Firebase rules ESLint plugin. Server tests cover input guards, usage limits, and Firebase token-verification outcomes. The separate `test:rules` command starts the Firestore emulator and runs access-control tests; it requires Java, Firebase CLI, and `@firebase/rules-unit-testing` (the CI workflow installs the emulator tooling temporarily). Full authentication journeys, AI provider integration, and browser end-to-end tests are still required.
 
 ## Production build and start
 
@@ -95,7 +96,7 @@ The Firebase web configuration is client-side configuration, not a private crede
 
 Review the Firestore rules and target Firebase project before deploying any rules. Do not deploy rules to a production project without first confirming the project ID, database, and intended access policy.
 
-The repository's `security_spec.md` documents the intended rules. Automated emulator-based rules tests are still required before production approval.
+The repository's `security_spec.md` documents the intended rules. The emulator suite currently verifies private-profile isolation and classroom-member read boundaries. It does not yet validate trusted achievement writes, parent-link privacy/claim flows, complete classroom lifecycle behavior, or deployed production rules.
 
 ## Security
 
