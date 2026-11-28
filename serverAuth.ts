@@ -43,10 +43,11 @@ export async function verifyFirebaseIdToken(
       localId?: unknown;
       email?: unknown;
       emailVerified?: unknown;
+      disabled?: unknown;
     }>;
   };
   const user = Array.isArray(payload.users) ? payload.users[0] : undefined;
-  if (typeof user?.localId !== 'string' || user.localId.length === 0 || user.localId.length > 128) {
+  if (typeof user?.localId !== 'string' || user.localId.length === 0 || user.localId.length > 128 || user.disabled === true) {
     return null;
   }
 
