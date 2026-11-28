@@ -1,0 +1,8 @@
+{
+  "firestore": [
+    {
+      "database": "ai-studio-voihub-60f2079a-138f-4180-897b-bf9e1462a02c",
+      "rules": "firestore.rules"
+    }
+  ]
+}

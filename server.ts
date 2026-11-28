@@ -2,20 +2,65 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
+import {
+  DEPTH_LEVELS,
+  DIFFICULTIES,
+  MAX_TEXT,
+  MODES,
+  cleanText,
+  createDailyCap,
+  createRateLimiter,
+  parseGrade,
+  pickOne,
+  positiveIntFromEnv,
+} from './serverGuards.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = Number(process.env.PORT || 3000);
-const MODEL_TEXT = 'gemini-4-hydrogen';
+// Override with GEMINI_MODEL without a code change if the default is unavailable.
+const MODEL_TEXT = process.env.GEMINI_MODEL || 'gemini-4-hydrogen';
+const IS_PROD = process.env.NODE_ENV === 'production' || process.argv.includes('--prod');
+
+// Abuse protection for the public AI endpoints (tunable via env).
+const aiRateLimiter = createRateLimiter({
+  windowMs: positiveIntFromEnv(process.env.AI_RATE_WINDOW_MS, 10 * 60 * 1000),
+  max: positiveIntFromEnv(process.env.AI_RATE_MAX, 30),
+});
+const aiDailyCap = createDailyCap(positiveIntFromEnv(process.env.AI_DAILY_CAP, 5000));
+
+const AI_UNAVAILABLE = 'The AI tutor is temporarily unavailable. Please try again in a moment.';
+
+function sendApiError(res: express.Response, route: string, error: any, fallbackMessage: string) {
+  console.error(`Error in ${route}:`, error);
+  const upstream = Number(error?.statusCode || error?.status);
+  if (upstream === 429) {
+    return res.status(429).json({ error: 'The AI tutor is busy right now. Please try again shortly.' });
+  }
+  if (upstream === 503) {
+    return res.status(503).json({ error: AI_UNAVAILABLE });
+  }
+  // Never expose raw upstream/internal error text to clients.
+  return res.status(500).json({ error: fallbackMessage });
+}
+
+const aiGuard: express.RequestHandler = (req, res, next) => {
+  const limit = aiRateLimiter.check(req.ip || 'unknown');
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds));
+    return res.status(429).json({ error: 'Too many requests. Please wait a bit before trying again.' });
+  }
+  if (!aiDailyCap.tryConsume()) {
+    return res.status(503).json({ error: 'The daily AI limit has been reached. Please come back tomorrow.' });
+  }
+  next();
+};
 
 function getAiClient(): GoogleGenAI {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw Object.assign(
-      new Error('GEMINI_API_KEY is not configured in environment secrets. Please set GEMINI_API_KEY in Settings > Secrets.'),
-      { statusCode: 503 }
-    );
+    throw Object.assign(new Error('GEMINI_API_KEY is not configured.'), { statusCode: 503 });
   }
   return new GoogleGenAI({
     apiKey,
@@ -159,7 +204,15 @@ const practiceSchema = {
 
 async function startServer() {
   const app = express();
-  app.use(express.json({ limit: '2mb' }));
+  app.disable('x-powered-by');
+  // Hosts such as Cloud Run / Render / Fly sit behind one proxy; needed for a correct client IP.
+  app.set('trust proxy', 1);
+  app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    next();
+  });
+  app.use(express.json({ limit: '100kb' }));
 
   app.get('/api/health', (_req, res) => {
     res.json({
@@ -169,11 +222,21 @@ async function startServer() {
     });
   });
 
+  app.use('/api/lesson', aiGuard);
+  app.use('/api/practice', aiGuard);
+  app.use('/api/tutor', aiGuard);
+
   app.post('/api/lesson/generate', async (req, res) => {
     try {
-      const { moduleId, grade, subjectName, unitTitle, topic, depthLevel = 'standard' } = req.body ?? {};
-      if (!topic || !subjectName || !grade) {
-        return res.status(400).json({ error: 'Missing required fields: grade, subjectName, topic.' });
+      const body = req.body ?? {};
+      const grade = parseGrade(body.grade);
+      const subjectName = cleanText(body.subjectName, MAX_TEXT.subjectName);
+      const unitTitle = cleanText(body.unitTitle, MAX_TEXT.unitTitle);
+      const topic = cleanText(body.topic, MAX_TEXT.topic);
+      const moduleId = cleanText(body.moduleId, MAX_TEXT.moduleId);
+      const depthLevel = pickOne(body.depthLevel, DEPTH_LEVELS, 'standard');
+      if (!topic || !subjectName || grade === null) {
+        return res.status(400).json({ error: 'Missing or invalid fields: grade (1-9), subjectName, topic.' });
       }
 
       const ai = getAiClient();
@@ -292,19 +355,19 @@ Provide 4 to 5 thorough core conceptual sections (each with formal definition, m
 
       res.json(result);
     } catch (error: any) {
-      const status = error?.statusCode || error?.status || 500;
-      console.error('Error in /api/lesson/generate:', error);
-      res.status(status).json({
-        error: error?.message || 'Failed to synthesize deep curriculum monograph.',
-      });
+      sendApiError(res, '/api/lesson/generate', error, 'Failed to synthesize deep curriculum monograph.');
     }
   });
 
   app.post('/api/practice/generate', async (req, res) => {
     try {
-      const { grade, subjectName, topic, difficulty = 'Intermediate' } = req.body ?? {};
-      if (!grade || !subjectName || !topic) {
-        return res.status(400).json({ error: 'Missing required fields.' });
+      const body = req.body ?? {};
+      const grade = parseGrade(body.grade);
+      const subjectName = cleanText(body.subjectName, MAX_TEXT.subjectName);
+      const topic = cleanText(body.topic, MAX_TEXT.topic);
+      const difficulty = pickOne(body.difficulty, DIFFICULTIES, 'Intermediate');
+      if (grade === null || !subjectName || !topic) {
+        return res.status(400).json({ error: 'Missing or invalid fields: grade (1-9), subjectName, topic.' });
       }
       const ai = getAiClient();
       const response = await ai.models.generateContent({
@@ -336,17 +399,21 @@ Provide 4 to 5 thorough core conceptual sections (each with formal definition, m
         : [];
       res.json({ problems });
     } catch (error: any) {
-      const status = error?.statusCode || error?.status || 500;
-      console.error('Error in /api/practice/generate:', error);
-      res.status(status).json({ error: error?.message || 'Failed to generate practice drill.' });
+      sendApiError(res, '/api/practice/generate', error, 'Failed to generate practice drill.');
     }
   });
 
   app.post('/api/tutor/chat', async (req, res) => {
     try {
-      const { grade, subjectName, topic, mode = 'socratic', message, history = [] } = req.body ?? {};
-      if (!message || !topic) {
-        return res.status(400).json({ error: 'Missing message or topic.' });
+      const body = req.body ?? {};
+      const grade = parseGrade(body.grade);
+      const subjectName = cleanText(body.subjectName, MAX_TEXT.subjectName);
+      const topic = cleanText(body.topic, MAX_TEXT.topic);
+      const mode = pickOne(body.mode, MODES, 'socratic');
+      const message = cleanText(body.message, MAX_TEXT.message);
+      const history = body.history;
+      if (!message || !topic || !subjectName || grade === null) {
+        return res.status(400).json({ error: 'Missing or invalid fields: grade (1-9), subjectName, topic, message.' });
       }
 
       const ai = getAiClient();
@@ -369,8 +436,9 @@ Provide 4 to 5 thorough core conceptual sections (each with formal definition, m
             .slice(-10)
             .map((h: any) => ({
               role: h.role,
-              parts: [{ text: h.content }],
+              parts: [{ text: cleanText(h.content, MAX_TEXT.historyItem) }],
             }))
+            .filter((h) => h.parts[0].text.length > 0)
         : [];
 
       const chat = ai.chats.create({
@@ -385,13 +453,16 @@ Provide 4 to 5 thorough core conceptual sections (each with formal definition, m
       const reply = await chat.sendMessage({ message });
       res.json({ reply: reply.text ?? '' });
     } catch (error: any) {
-      const status = error?.statusCode || error?.status || 500;
-      console.error('Error in /api/tutor/chat:', error);
-      res.status(status).json({ error: error?.message || 'Tutor communication failed.' });
+      sendApiError(res, '/api/tutor/chat', error, 'Tutor communication failed.');
     }
   });
 
-  if (process.env.NODE_ENV !== 'production') {
+  // Unknown /api routes must return JSON, not the SPA shell.
+  app.use('/api', (_req, res) => {
+    res.status(404).json({ error: 'Not found.' });
+  });
+
+  if (!IS_PROD) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true, hmr: false, ws: false },
@@ -450,6 +521,16 @@ export class ErrorOverlay extends HTMLElement {}
       res.sendFile(path.join(distDir, 'index.html'));
     });
   }
+
+  // Malformed JSON / oversized bodies: respond with JSON instead of an HTML stack trace.
+  app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (res.headersSent) return next(err);
+    const status = err?.status === 413 ? 413 : err?.type === 'entity.parse.failed' ? 400 : 500;
+    if (status === 500) console.error('Unhandled server error:', err);
+    res.status(status).json({
+      error: status === 413 ? 'Request too large.' : status === 400 ? 'Invalid JSON body.' : 'Internal server error.',
+    });
+  });
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`TECH HUB server listening on http://0.0.0.0:${PORT}`);
