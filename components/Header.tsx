@@ -35,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({
           onClick={onNavigateAtlas}
           className="text-lg font-extrabold tracking-tight text-slate-900 whitespace-nowrap shrink-0 hover:text-blue-700 transition-colors"
         >
-          TECH HUB
+          VOI HUB
         </button>
 
         {/* Zone 2: Clean Single-Line Nav Links */}
