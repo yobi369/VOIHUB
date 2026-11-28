@@ -41,6 +41,7 @@ The Express/Vite development server listens on port `3000` by default. Set `PORT
 Run the same core checks used by GitHub Actions:
 
 ```bash
+bun run lint
 bun run typecheck
 bun run test
 bun run build
@@ -52,7 +53,7 @@ Or run all three in sequence:
 bun run check
 ```
 
-The current automated tests cover the dependency-free server input and usage guards. Firebase rules, authentication flows, AI provider integration, and full browser journeys still require dedicated integration and end-to-end tests.
+The current lint step checks Firestore security rules with the Firebase rules ESLint plugin. Automated tests cover the dependency-free server input, usage guards, and Firebase token-verification outcomes. Firestore emulator tests, full authentication journeys, AI provider integration, and browser end-to-end tests are still required.
 
 ## Production build and start
 
