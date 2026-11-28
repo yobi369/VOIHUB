@@ -88,3 +88,14 @@ test('missing server API key is treated as a configuration failure', async () =>
     /not configured/
   );
 });
+
+test('disabled Firebase accounts are rejected', async () => {
+  const identity = await verifyFirebaseIdToken(
+    'header.payload.signature-long-enough',
+    validKey,
+    async () => new Response(JSON.stringify({
+      users: [{ localId: 'disabled-student', emailVerified: true, disabled: true }],
+    }), { status: 200 })
+  );
+  assert.equal(identity, null);
+});
