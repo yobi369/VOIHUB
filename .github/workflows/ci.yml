@@ -39,7 +39,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Install temporary Firestore emulator test tooling
-        run: npm install --no-save --package-lock=false @firebase/rules-unit-testing@4 firebase-tools
+        run: npm install --no-save --package-lock=false @firebase/rules-unit-testing@6 firebase-tools
 
       - name: Firestore security rules lint
         run: bun run lint
