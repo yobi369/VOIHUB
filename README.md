@@ -1,59 +1,108 @@
-# VOI HUB (TECH HUB)
+# VOI HUB
 
-Interactive Classes 1–9 academy for AI, networking and defensive cybersecurity: deep AI-generated lessons, practice drills, a Socratic tutor, simulations/labs, classrooms for teachers and progress sharing for parents.
+VOI HUB is an interactive Classes 1–9 technology learning platform covering AI, computer networking, and defensive cybersecurity. The application includes AI-generated lessons and practice, a Socratic tutor, interactive learning labs, teacher-managed classrooms, and parent-facing progress sharing.
 
-**Stack:** React 19 + Vite + Tailwind 4 (frontend) · Express 5 + `@google/genai` (API, `server.ts`) · Firebase Auth (Google sign-in) + Firestore.
+**Product ownership:** BM Tech  
+**Technology:** React 19, TypeScript, Vite, Tailwind CSS 4, Express 5, Google Gemini API, Firebase Authentication, and Cloud Firestore.
 
-## Run locally
+## Project status
 
-```bash
-bun install            # or: npm install
-cp .env.example .env   # set GEMINI_API_KEY
-npm run dev            # http://localhost:3000 (Express + Vite middleware)
-```
+VOI HUB is under active preparation for a controlled pilot and commercial release. A successful local build or CI run does not, by itself, mean that production security, privacy, curriculum quality, or deployment has been approved.
 
-## Deploy
+Development work is currently coordinated through the `bmtech/production-readiness` branch. Changes should be reviewed and merged through pull requests.
 
-```bash
-npm run build          # builds the frontend into dist/
-npm start              # serves dist/ + the API in production mode
-```
+## Requirements
 
-- Set `GEMINI_API_KEY` as a secret on the host. `PORT` is respected.
-- `npm start` runs in production mode (`--prod`), so it serves the built `dist/`, not the Vite dev server.
-- The server assumes **one proxy hop** (`trust proxy = 1`) for correct client IPs.
-- Rate limiting and the daily AI cap are in memory, so they are per-instance. Run a single instance or move them to a shared store when scaling out.
+- Bun (recommended; the repository includes `bun.lock`)
+- A supported Node.js runtime for local tooling
+- Firebase project configuration
+- A Gemini API key for AI-powered features
 
-### Firestore rules
+## Local development
+
+Install the exact dependency versions recorded in the lockfile:
 
 ```bash
-firebase deploy --only firestore:rules --project gen-lang-client-0950335695
+bun install --frozen-lockfile
 ```
 
-`firebase.json` targets the named database in `firebase-applet-config.json`. Rule intent is documented in `security_spec.md`.
+Create a local environment file from the example and set the required server secret:
+
+```bash
+cp .env.example .env
+# Set GEMINI_API_KEY in .env
+bun run dev
+```
+
+The Express/Vite development server listens on port `3000` by default. Set `PORT` to override it.
+
+## Quality checks
+
+Run the same core checks used by GitHub Actions:
+
+```bash
+bun run typecheck
+bun run test
+bun run build
+```
+
+Or run all three in sequence:
+
+```bash
+bun run check
+```
+
+The current automated tests cover the dependency-free server input and usage guards. Firebase rules, authentication flows, AI provider integration, and full browser journeys still require dedicated integration and end-to-end tests.
+
+## Production build and start
+
+```bash
+bun run build
+bun run start
+```
+
+The production server serves the compiled `dist/` directory and the API. Configure `GEMINI_API_KEY` as a secret in the hosting provider; never commit real credentials.
 
 ## Environment variables
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `GEMINI_API_KEY` | – | Required for all AI endpoints |
-| `GEMINI_MODEL` | `gemini-4-hydrogen` | Model id override |
-| `AI_RATE_MAX` / `AI_RATE_WINDOW_MS` | `30` / `600000` | Per-IP limit on AI requests |
-| `AI_DAILY_CAP` | `5000` | Total AI requests per UTC day |
-| `PORT` | `3000` | HTTP port |
+| `GEMINI_API_KEY` | — | Required for AI endpoints |
+| `GEMINI_MODEL` | `gemini-4-hydrogen` | Gemini model override |
+| `AI_RATE_MAX` | `30` | Maximum AI requests per client window |
+| `AI_RATE_WINDOW_MS` | `600000` | AI request window in milliseconds |
+| `AI_DAILY_CAP` | `5000` | Process-local AI request cap per UTC day |
+| `PORT` | `3000` | HTTP server port |
+
+The current rate limiter and daily cap are in-memory and therefore per-process. They are not a shared quota system for multi-instance deployments. A persistent, distributed usage-control mechanism is required before scaling public commercial traffic.
 
 ## API
 
 | Route | Purpose |
 | --- | --- |
-| `GET /api/health` | Liveness and whether AI is configured |
-| `POST /api/lesson/generate` | Generate a lesson monograph |
+| `GET /api/health` | Liveness and AI configuration status |
+| `POST /api/lesson/generate` | Generate a lesson |
 | `POST /api/practice/generate` | Generate practice problems |
 | `POST /api/tutor/chat` | Tutor conversation turn |
 
-AI routes validate input (grade 1–9, length caps, allow-listed modes), are rate limited, and return generic error messages on server failures.
+AI endpoints apply request validation, length limits, per-client rate limiting, and a process-local daily cap. Authentication and per-account entitlements remain part of the production-readiness work.
 
-## Notes
+## Firebase and Firestore
 
-- `firebase-applet-config.json` contains the Firebase **web** config. It is public by design; restrict the API key by HTTP referrer in Google Cloud Console.
-- `npm run lint` runs the TypeScript check (`tsc --noEmit`).
+The Firebase web configuration is client-side configuration, not a private credential. Restrict its API key to the required application origins and APIs in Google Cloud.
+
+Review the Firestore rules and target Firebase project before deploying any rules. Do not deploy rules to a production project without first confirming the project ID, database, and intended access policy.
+
+The repository's `security_spec.md` documents the intended rules. Automated emulator-based rules tests are still required before production approval.
+
+## Security
+
+See [SECURITY.md](./SECURITY.md) for vulnerability reporting guidance. Do not publish credentials, student information, or exploitable vulnerability details in public issues.
+
+## Contributing
+
+- Preserve existing product functionality unless a change is explicitly approved.
+- Work on a feature or hardening branch and open a pull request to `main`.
+- Include tests for security-sensitive and business-critical changes.
+- Do not claim a feature, test, or deployment is complete without evidence.
+- Never commit secrets, production student data, or private credentials.
